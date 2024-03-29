@@ -52,10 +52,10 @@ class initAsyncQueue {
 
             if (errors.length) {
                 const errorsArr = errors.map(({indexOrErrInStack, promise}) => new Error(`Status: ${promise.status}, reasonError: ${promise.reason}, Erreur dans la pile index ${indexOrErrInStack}`));
-                throw new AggregateError(errorsArr, "Erreur dans la queue.");
+                throw new AggregateError(errorsArr, `${errors.length} erreur(s) dans la queue.`);
             }
         } catch (err) {
-            console.error(`${err.errors.join(" -- ")}`);
+            console.error(`${err.errors.join(" -- ")} ==> ${err.message}`);
         } finally {
             console.info(results);
             this.gen.next();

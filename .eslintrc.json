@@ -8,7 +8,7 @@
         "sourceType": "module"
     },
     "rules": {
-        "quotes": 1,
+        "quotes": 2,
         "semi": 1
     }
 }
