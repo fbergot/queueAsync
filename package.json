@@ -1,0 +1,23 @@
+{
+  "name": "nouveau-dossier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbergot/queueAsync.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fbergot/queueAsync/issues"
+  },
+  "homepage": "https://github.com/fbergot/queueAsync#readme",
+  "dependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}
