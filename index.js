@@ -9,16 +9,16 @@ class initAsyncQueue {
     }
 
     /**
-     * Quand on set un array de functions de promises, l'init du gen se fait auto.
+     * Quand on set un array de functions de promises, l'init de la queue se fait auto.
      * @param {() => Promise<*>[]} arrayOfPromises
      */
-    set loadArrPromises(arrayOfPromises) {
+    set loadArrPromisesAndExecGen(arrayOfPromises) {
         this.#arrPromises = arrayOfPromises;
         this.initGenerator();
     }
 
     /**
-     * Init le gérérator
+     * Agrége en pile les promises && init le gérérator
      * @returns {void}
      */
     async initGenerator() {
@@ -31,7 +31,7 @@ class initAsyncQueue {
     };
 
     /**
-     * @param {*} arrayOfPromises
+     * @param {() => Promise<*>[]} arrayOfPromises
      * @param {?number} index
      */
     async *generator(arrayOfPromises, index = 0) {
@@ -48,14 +48,13 @@ class initAsyncQueue {
         try {
             var results = await Promise.allSettled(arrayOfPromises[index++].map((prom) => prom()));
             const resultsRejected = results.filter((promise) => promise.status !== "fulfilled" && promise.reason);
-            const errors = resultsRejected.map(promise => ({ indexOrErrInStack: index - 1, promise }));
 
-            if (errors.length) {
-                const errorsArr = errors.map(({indexOrErrInStack, promise}) => new Error(`Status: ${promise.status}, reasonError: ${promise.reason}, Erreur dans la pile index ${indexOrErrInStack}`));
-                throw new AggregateError(errorsArr, `${errors.length} erreur(s) dans la queue.`);
+            if (resultsRejected.length) {
+                const errorsArr = resultsRejected.map(({status, reason}) => new Error(`Status: ${status}, reasonError: ${reason}`));
+                throw new AggregateError(errorsArr, `${resultsRejected.length} erreur(s) dans la pile index ${index - 1}`);
             }
         } catch (err) {
-            console.error(`${err.errors.join(" -- ")} ==> ${err.message}`);
+            console.error(`${err.errors.join(" + ")} ==> ${err.message}`);
         } finally {
             console.info(results);
             this.gen.next();
@@ -63,27 +62,27 @@ class initAsyncQueue {
     }
 
     /**
-     * Groupe les Promises en groupe de n Promises with nbPromGroup
+     * Groupe les Promises en groupe de n Promises with nbPromisesInStack
      * @param {() => Promise<*>[]} arrFuncsProms
-     * @param {number} nbPromGroup
+     * @param {number} nbPromisesInStack
      * @returns {() => Promise<*>[][]} arrOfArrPromsGrouped
      */
-    agregatePromises(arrFuncsProms, nbPromGroup) {
+    agregatePromises(arrFuncsProms, nbPromisesInStack) {
         const arrFuncsPromsCopy = [ ...arrFuncsProms ];
         const arrOfArrPromsGrouped = [];
         let grouped;
 
-        const recursive = (nbPromGroup) => {
-            if (arrFuncsPromsCopy.length > nbPromGroup) {
-                grouped = arrFuncsPromsCopy.splice(0, nbPromGroup);
+        const recursiveGrouping = (nbPromisesInStack) => {
+            if (arrFuncsPromsCopy.length > nbPromisesInStack) {
+                grouped = arrFuncsPromsCopy.splice(0, nbPromisesInStack);
                 arrOfArrPromsGrouped.push(grouped);
-                recursive(nbPromGroup);
+                recursiveGrouping(nbPromisesInStack);
             } else {
                 grouped = [ ...arrFuncsPromsCopy ];
                 arrOfArrPromsGrouped.push(grouped);
             }
         };
-        recursive(nbPromGroup);
+        recursiveGrouping(nbPromisesInStack);
 
         return arrOfArrPromsGrouped;
     }
@@ -123,4 +122,4 @@ const arrPromises = [
 ];
 
 const initAsyncQueueInstance = new initAsyncQueue(4);
-initAsyncQueueInstance.loadArrPromises = (arrPromises);
+initAsyncQueueInstance.loadArrPromisesAndExecGen = (arrPromises);
