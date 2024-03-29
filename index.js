@@ -8,6 +8,7 @@ class initAsyncQueue {
         this.#nbPromGroup = nbPromGroup;
         this.#arrPromises = [];
         this.#gen;
+        this.results = [];
     }
 
     /**
@@ -39,6 +40,8 @@ class initAsyncQueue {
         while (index < arrayOfPromises.length) {
             yield await this.execute(arrayOfPromises, index++);
         }
+
+        console.log(this.results);
     }
 
     /**
@@ -48,7 +51,12 @@ class initAsyncQueue {
     async execute(arrayOfPromises, index = 0) {
         try {
             var results = await Promise.allSettled(arrayOfPromises[index++].map((prom) => prom()));
-            const resultsRejected = results.filter((promise) => promise.status !== "fulfilled" && promise.reason);
+            const resultsRejected = results.filter(promise => promise.status !== "fulfilled" && promise.reason);
+
+            var resultsFulfilled = results.map(promise => {
+                if (promise.status === "fulfilled") return promise.value;
+                else return null;
+            });
 
             if (resultsRejected.length) {
                 const errorsArr = resultsRejected.map(({status, reason}) => new Error(`Status: ${status}, reasonError: ${reason}`));
@@ -57,7 +65,7 @@ class initAsyncQueue {
         } catch (err) {
             console.error(`${err.errors.join(" + ")} ==> ${err.message}`);
         } finally {
-            console.info(results);
+            this.results.push(resultsFulfilled);
             this.#gen.next();
         }
     }
