@@ -62,7 +62,7 @@ class initAsyncQueue {
     }
 
     /**
-     * Groupe les Promises en groupe de n Promises with nbPromisesInStack
+     * Groupe les Promises en groupe de n Promises with n = nbPromisesInStack
      * @param {() => Promise<*>[]} arrFuncsProms
      * @param {number} nbPromisesInStack
      * @returns {() => Promise<*>[][]} arrOfArrPromsGrouped
