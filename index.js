@@ -2,10 +2,12 @@ class initAsyncQueue {
     #arrayOfGroupedPromises;
     #arrPromises;
     #nbPromGroup;
+    #gen;
 
     constructor(nbPromGroup = 3) {
         this.#nbPromGroup = nbPromGroup;
         this.#arrPromises = [];
+        this.#gen;
     }
 
     /**
@@ -25,9 +27,8 @@ class initAsyncQueue {
         if (!this.#arrPromises.length) return;
 
         this.#arrayOfGroupedPromises = this.agregatePromises(this.#arrPromises, this.#nbPromGroup);
-        this.gen = this.generator(this.#arrayOfGroupedPromises);
-        this.gen.next();
-
+        this.#gen = this.generator(this.#arrayOfGroupedPromises);
+        this.#gen.next();
     };
 
     /**
@@ -57,7 +58,7 @@ class initAsyncQueue {
             console.error(`${err.errors.join(" + ")} ==> ${err.message}`);
         } finally {
             console.info(results);
-            this.gen.next();
+            this.#gen.next();
         }
     }
 
@@ -77,14 +78,16 @@ class initAsyncQueue {
                 grouped = arrFuncsPromsCopy.splice(0, nbPromisesInStack);
                 arrOfArrPromsGrouped.push(grouped);
                 recursiveGrouping(nbPromisesInStack);
+
             } else {
                 grouped = [ ...arrFuncsPromsCopy ];
                 arrOfArrPromsGrouped.push(grouped);
             }
-        };
-        recursiveGrouping(nbPromisesInStack);
 
-        return arrOfArrPromsGrouped;
+            return arrOfArrPromsGrouped;
+        };
+
+        return recursiveGrouping(nbPromisesInStack);;
     }
 }
 
@@ -121,5 +124,7 @@ const arrPromises = [
     () => Promise.reject("Erreur 502"),
 ];
 
-const initAsyncQueueInstance = new initAsyncQueue(4);
-initAsyncQueueInstance.loadArrPromisesAndExecGen = (arrPromises);
+const nbByStack = 3;
+const initAsyncQueueInstance = new initAsyncQueue(nbByStack);
+
+initAsyncQueueInstance.loadArrPromisesAndExecGen = arrPromises;
