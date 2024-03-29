@@ -45,18 +45,14 @@ class initAsyncQueue {
     }
 
     /**
-     * @param {() => Promise<*>[][]} arrayOfPromises
+     * @param {() => Promise<*>[][]} arrayOfFuncofPromises
      * @param {?number} index
      */
-    async execute(arrayOfPromises, index = 0) {
+    async execute(arrayOfFuncofPromises, index = 0) {
         try {
-            var results = await Promise.allSettled(arrayOfPromises[index++].map((prom) => prom()));
+            var results = await Promise.allSettled(arrayOfFuncofPromises[index++].map(funcCallPromise => funcCallPromise()));
             const resultsRejected = results.filter(promise => promise.status !== "fulfilled" && promise.reason);
-
-            var resultsFulfilled = results.map(promise => {
-                if (promise.status === "fulfilled") return promise.value;
-                else return null;
-            });
+            var resultsFulfilled = results.map(promise => (promise.status === "fulfilled") ? promise.value : promise.reason);
 
             if (resultsRejected.length) {
                 const errorsArr = resultsRejected.map(({status, reason}) => new Error(`Status: ${status}, reasonError: ${reason}`));
@@ -121,7 +117,8 @@ const arrPromises = [
     () => setTime(5),
     () => Promise.reject("Erreur SQL"),
 
-    () => Promise.reject("Erreur 500"),
+
+    () => setTime(1000),
     () => setTime(1000),
     () => setTime(2),
 
